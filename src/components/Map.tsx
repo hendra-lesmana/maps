@@ -17,6 +17,7 @@ const Map = ({ showPanel = false, setShowPanel, drawingMode: externalDrawingMode
   const [drawingMode, setDrawingMode] = useState(null);
   const [currentMarker, setCurrentMarker] = useState(null);
   const [currentPolygon, setCurrentPolygon] = useState(null);
+  const [locationMarker, setLocationMarker] = useState(null);
   const [polygonPoints, setPolygonPoints] = useState([]);
   
   // Update internal drawing mode when external prop changes
@@ -42,7 +43,7 @@ const Map = ({ showPanel = false, setShowPanel, drawingMode: externalDrawingMode
       const map = L.map(mapContainerRef.current!, {
         zoomControl: false
       }).setView([-2.5, 118], 5);
-(mapRef.current as any) = map;
+      (mapRef.current as any) = map;
 
       // Add OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -90,16 +91,49 @@ const Map = ({ showPanel = false, setShowPanel, drawingMode: externalDrawingMode
       zoomControl.addTo(map);
 
       // Add location button
-      const locationButton = new L.Control({ position: 'bottomright' });
+      const locationButton = new L.Control({ position: 'topright' });
       locationButton.onAdd = () => {
-        const button = L.DomUtil.create('button', 'location-button');
+        const container = L.DomUtil.create('div', 'leaflet-bar');
+        container.style.backgroundColor = 'rgba(51, 51, 51, 0.9)';
+        container.style.padding = '5px';
+        container.style.borderRadius = '8px';
+        container.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+        container.style.marginTop = '10px';
+
+        const button = L.DomUtil.create('button', '', container);
         button.innerHTML = '📍';
+        button.style.width = '30px';
+        button.style.height = '30px';
+        button.style.fontSize = '16px';
+        button.style.backgroundColor = 'transparent';
+        button.style.border = '1px solid rgba(255,255,255,0.2)';
+        button.style.color = 'white';
+        button.style.cursor = 'pointer';
+        button.style.borderRadius = '4px';
+        button.style.display = 'block';
         button.onclick = () => {
+          if (locationMarker) {
+            map.removeLayer(locationMarker);
+          }
           map.locate({ setView: true, maxZoom: 16 });
         };
-        return button;
+
+        return container;
       };
       locationButton.addTo(map);
+
+      // Add location found handler
+      map.on('locationfound', (e) => {
+        const redIcon = L.divIcon({
+          className: 'custom-div-icon',
+          html: "<div style='background-color: #ff4444; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);'></div>",
+          iconSize: [16, 16],
+          iconAnchor: [8, 8]
+        });
+
+        const marker = L.marker(e.latlng, { icon: redIcon }).addTo(map);
+        setLocationMarker(marker);
+      });
 
       // Add click handler for drawing
       map.on('click', (e) => {
