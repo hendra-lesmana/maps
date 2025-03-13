@@ -6,10 +6,11 @@ import dynamic from 'next/dynamic';
 interface MapProps {
   showPanel?: boolean;
   setShowPanel?: (show: boolean) => void;
+  drawingMode?: string | null;
 }
 
 // Dynamically import Leaflet with no SSR
-const Map = ({ showPanel = false, setShowPanel }: MapProps = {}) => {
+const Map = ({ showPanel = false, setShowPanel, drawingMode: externalDrawingMode }: MapProps = {}) => {
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -17,6 +18,13 @@ const Map = ({ showPanel = false, setShowPanel }: MapProps = {}) => {
   const [currentMarker, setCurrentMarker] = useState(null);
   const [currentPolygon, setCurrentPolygon] = useState(null);
   const [polygonPoints, setPolygonPoints] = useState([]);
+  
+  // Update internal drawing mode when external prop changes
+  useEffect(() => {
+    if (externalDrawingMode) {
+      setDrawingMode(externalDrawingMode);
+    }
+  }, [externalDrawingMode]);
 
   useEffect(() => {
     setIsMounted(true);

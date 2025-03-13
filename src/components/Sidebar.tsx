@@ -4,14 +4,22 @@ import { useState } from 'react';
 
 interface SidebarProps {
   onCatalogueClick?: () => void;
+  onSetDrawingMode?: (mode: string) => void;
 }
 
-const Sidebar = ({ onCatalogueClick }: SidebarProps = {}) => {
+const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
   const [showCataloguePanel, setShowCataloguePanel] = useState(false);
+  const [drawingMode, setDrawingMode] = useState<string | null>(null);
   
   const handleCatalogueClick = () => {
     setShowCataloguePanel(!showCataloguePanel);
     if (onCatalogueClick) onCatalogueClick();
+  };
+  
+  // Update the parent component when drawing mode changes
+  const handleDrawingModeChange = (mode: string) => {
+    setDrawingMode(mode);
+    if (onSetDrawingMode) onSetDrawingMode(mode);
   };
 
   return (
@@ -32,7 +40,7 @@ const Sidebar = ({ onCatalogueClick }: SidebarProps = {}) => {
         <NavItem icon="🛒" text="Cart" />
       </div>
 
-      {showCataloguePanel && <CataloguePanel onClose={() => setShowCataloguePanel(false)} />}
+      {showCataloguePanel && <CataloguePanel onClose={() => setShowCataloguePanel(false)} onSetDrawingMode={setDrawingMode} />}
     </>
   );
 };
@@ -60,12 +68,31 @@ interface CataloguePanelProps {
   onClose: () => void;
 }
 
-const CataloguePanel = ({ onClose }: CataloguePanelProps) => {
+interface CataloguePanelProps {
+  onClose: () => void;
+  onSetDrawingMode?: (mode: string) => void;
+}
+
+const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
+  const [activeButton, setActiveButton] = useState<string | null>(null);
+
+  const handlePointClick = () => {
+    const mode = activeButton === 'point' ? null : 'point';
+    setActiveButton(mode);
+    if (onSetDrawingMode) onSetDrawingMode(mode);
+  };
+
+  const handlePolygonClick = () => {
+    const mode = activeButton === 'polygon' ? null : 'polygon';
+    setActiveButton(mode);
+    if (onSetDrawingMode) onSetDrawingMode(mode);
+  };
+
   return (
-    <div className="fixed left-[120px] top-5 h-[calc(100%-40px)] w-[250px] bg-[rgba(51,51,51,0.9)] z-5 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out">
+    <div className="fixed left-[120px] top-5 h-[calc(100%-40px)] w-[300px] bg-[rgba(51,51,51,0.9)] z-5 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out">
       <div className="p-4 text-white">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Catalogue</h2>
+          <h2 className="text-xl font-semibold">Find Insight</h2>
           <button
             onClick={onClose}
             className="text-gray-300 hover:text-white text-xl"
@@ -74,32 +101,55 @@ const CataloguePanel = ({ onClose }: CataloguePanelProps) => {
           </button>
         </div>
         
-        <div className="space-y-3">
-          <CatalogueItem title="Landmarks" count={24} />
-          <CatalogueItem title="Natural Features" count={18} />
-          <CatalogueItem title="Urban Areas" count={42} />
-          <CatalogueItem title="Infrastructure" count={36} />
-          <CatalogueItem title="Custom Markers" count={12} />
+        <div className="space-y-4">
+          <div>
+            <p className="mb-2 text-sm">Select Location</p>
+            <p className="mb-3 text-xs text-gray-300">Choose an area by searching, dropping a pin, or drawing a custom polygon.</p>
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder="Search" 
+                className="w-full p-2 pl-8 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+              />
+              <svg className="absolute left-2 top-2.5 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+          
+          <div className="flex gap-3">
+            <button 
+              onClick={handlePointClick}
+              className={`flex-1 py-3 ${activeButton === 'point' ? 'bg-[#2a75e6]' : 'bg-[#4285F4] hover:bg-[#2a75e6]'} text-white rounded-md flex items-center justify-center transition-colors`}
+            >
+              <span className="mr-2">⊙</span>
+              <span>Point</span>
+            </button>
+            <button 
+              onClick={handlePolygonClick}
+              className={`flex-1 py-3 ${activeButton === 'polygon' ? 'bg-[#2a75e6]' : 'bg-[#4285F4] hover:bg-[#2a75e6]'} text-white rounded-md flex items-center justify-center transition-colors`}
+            >
+              <span className="mr-2">⬡</span>
+              <span>Polygon</span>
+            </button>
+          </div>
+          {activeButton === 'polygon' && (
+            <button
+              onClick={() => {
+                setActiveButton(null);
+                if (onSetDrawingMode) onSetDrawingMode(null);
+              }}
+              className="w-full p-2 rounded bg-red-500 text-white mt-4"
+            >
+              Clear Polygon
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-interface CatalogueItemProps {
-  title: string;
-  count: number;
-}
 
-const CatalogueItem = ({ title, count }: CatalogueItemProps) => {
-  return (
-    <div className="p-3 bg-[#444] rounded-lg cursor-pointer hover:bg-[#555] transition-colors">
-      <div className="flex justify-between items-center">
-        <span>{title}</span>
-        <span className="bg-[#666] px-2 py-1 rounded-full text-xs">{count}</span>
-      </div>
-    </div>
-  );
-};
 
 export default Sidebar;
