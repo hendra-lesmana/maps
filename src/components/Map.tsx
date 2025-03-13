@@ -39,13 +39,55 @@ const Map = ({ showPanel = false, setShowPanel, drawingMode: externalDrawingMode
       require('leaflet/dist/leaflet.css');
 
       // Initialize the map
-      const map = L.map(mapContainerRef.current!).setView([-2.5, 118], 5);
+      const map = L.map(mapContainerRef.current!, {
+        zoomControl: false
+      }).setView([-2.5, 118], 5);
 (mapRef.current as any) = map;
 
       // Add OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);
+
+      // Add zoom control buttons
+      const zoomControl = new L.Control({ position: 'topright' });
+      zoomControl.onAdd = () => {
+        const container = L.DomUtil.create('div', 'leaflet-bar');
+        container.style.backgroundColor = 'rgba(51, 51, 51, 0.9)';
+        container.style.padding = '5px';
+        container.style.borderRadius = '8px';
+        container.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+
+        const zoomInButton = L.DomUtil.create('button', '', container);
+        zoomInButton.innerHTML = '+';
+        zoomInButton.style.width = '30px';
+        zoomInButton.style.height = '30px';
+        zoomInButton.style.fontSize = '20px';
+        zoomInButton.style.backgroundColor = 'transparent';
+        zoomInButton.style.border = '1px solid rgba(255,255,255,0.2)';
+        zoomInButton.style.color = 'white';
+        zoomInButton.style.cursor = 'pointer';
+        zoomInButton.style.borderRadius = '4px';
+        zoomInButton.style.marginBottom = '5px';
+        zoomInButton.style.display = 'block';
+        zoomInButton.onclick = () => map.zoomIn();
+
+        const zoomOutButton = L.DomUtil.create('button', '', container);
+        zoomOutButton.innerHTML = '−';
+        zoomOutButton.style.width = '30px';
+        zoomOutButton.style.height = '30px';
+        zoomOutButton.style.fontSize = '20px';
+        zoomOutButton.style.backgroundColor = 'transparent';
+        zoomOutButton.style.border = '1px solid rgba(255,255,255,0.2)';
+        zoomOutButton.style.color = 'white';
+        zoomOutButton.style.cursor = 'pointer';
+        zoomOutButton.style.borderRadius = '4px';
+        zoomOutButton.style.display = 'block';
+        zoomOutButton.onclick = () => map.zoomOut();
+
+        return container;
+      };
+      zoomControl.addTo(map);
 
       // Add location button
       const locationButton = new L.Control({ position: 'bottomright' });
