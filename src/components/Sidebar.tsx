@@ -9,11 +9,38 @@ interface SidebarProps {
 
 const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
   const [showCataloguePanel, setShowCataloguePanel] = useState(false);
+  const [showDataPanel, setShowDataPanel] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
+  const [showCartPanel, setShowCartPanel] = useState(false);
   const [drawingMode, setDrawingMode] = useState<string | null>(null);
   
   const handleCatalogueClick = () => {
     setShowCataloguePanel(!showCataloguePanel);
+    setShowDataPanel(false);
+    setShowAIPanel(false);
+    setShowCartPanel(false);
     if (onCatalogueClick) onCatalogueClick();
+  };
+
+  const handleDataClick = () => {
+    setShowDataPanel(!showDataPanel);
+    setShowCataloguePanel(false);
+    setShowAIPanel(false);
+    setShowCartPanel(false);
+  };
+
+  const handleAIClick = () => {
+    setShowAIPanel(!showAIPanel);
+    setShowCataloguePanel(false);
+    setShowDataPanel(false);
+    setShowCartPanel(false);
+  };
+
+  const handleCartClick = () => {
+    setShowCartPanel(!showCartPanel);
+    setShowCataloguePanel(false);
+    setShowDataPanel(false);
+    setShowAIPanel(false);
   };
   
   // Update the parent component when drawing mode changes
@@ -35,12 +62,15 @@ const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
         </div>
         
         <NavItem icon="📚" text="Catalogue" onClick={handleCatalogueClick} active={showCataloguePanel} />
-        <NavItem icon="📊" text="My Data" />
-        <NavItem icon="🤖" text="AI Prompt" />
-        <NavItem icon="🛒" text="Cart" />
+        <NavItem icon="📊" text="My Data" onClick={handleDataClick} active={showDataPanel} />
+        <NavItem icon="🤖" text="AI Prompt" onClick={handleAIClick} active={showAIPanel} />
+        <NavItem icon="🛒" text="Cart" onClick={handleCartClick} active={showCartPanel} />
       </div>
 
       {showCataloguePanel && <CataloguePanel onClose={() => setShowCataloguePanel(false)} onSetDrawingMode={setDrawingMode} />}
+      {showDataPanel && <DataPanel onClose={() => setShowDataPanel(false)} />}
+      {showAIPanel && <AIPanel onClose={() => setShowAIPanel(false)} />}
+      {showCartPanel && <CartPanel onClose={() => setShowCartPanel(false)} />}
     </>
   );
 };
@@ -153,3 +183,75 @@ const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
 
 
 export default Sidebar;
+
+
+interface PanelProps {
+  onClose: () => void;
+}
+
+const DataPanel = ({ onClose }: PanelProps) => {
+  return (
+    <div className="fixed left-[120px] top-5 h-[calc(100%-40px)] w-[300px] bg-[rgba(51,51,51,0.9)] z-5 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out">
+      <div className="p-4 text-white">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">My Data</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-300 hover:text-white text-xl"
+          >
+            ×
+          </button>
+        </div>
+        <div className="space-y-4">
+          <p className="text-sm">Your data analysis and visualization will appear here.</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AIPanel = ({ onClose }: PanelProps) => {
+  return (
+    <div className="fixed left-[120px] top-5 h-[calc(100%-40px)] w-[300px] bg-[rgba(51,51,51,0.9)] z-5 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out">
+      <div className="p-4 text-white">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">AI Prompt</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-300 hover:text-white text-xl"
+          >
+            ×
+          </button>
+        </div>
+        <div className="space-y-4">
+          <textarea
+            placeholder="Enter your prompt here..."
+            className="w-full p-2 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+            rows={4}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CartPanel = ({ onClose }: PanelProps) => {
+  return (
+    <div className="fixed left-[120px] top-5 h-[calc(100%-40px)] w-[300px] bg-[rgba(51,51,51,0.9)] z-5 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out">
+      <div className="p-4 text-white">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Cart</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-300 hover:text-white text-xl"
+          >
+            ×
+          </button>
+        </div>
+        <div className="space-y-4">
+          <p className="text-sm">Your cart is empty.</p>
+        </div>
+      </div>
+    </div>
+  );
+};
