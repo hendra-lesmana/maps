@@ -109,13 +109,13 @@ const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
   const handlePointClick = () => {
     const mode = activeButton === 'point' ? null : 'point';
     setActiveButton(mode);
-    if (onSetDrawingMode) onSetDrawingMode(mode);
+    if (onSetDrawingMode && mode !== null) onSetDrawingMode(mode);
   };
 
   const handlePolygonClick = () => {
     const mode = activeButton === 'polygon' ? null : 'polygon';
     setActiveButton(mode);
-    if (onSetDrawingMode) onSetDrawingMode(mode);
+    if (onSetDrawingMode && mode !== null) onSetDrawingMode(mode);
   };
 
   return (
@@ -167,7 +167,7 @@ const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
             <button
               onClick={() => {
                 setActiveButton(null);
-                if (onSetDrawingMode) onSetDrawingMode(null);
+                if (onSetDrawingMode) onSetDrawingMode('');
               }}
               className="w-full p-2 rounded bg-red-500 text-white mt-4"
             >
