@@ -5,7 +5,7 @@ import { MenuIcon } from './icons';
 
 interface SidebarProps {
   onCatalogueClick?: () => void;
-  onSetDrawingMode?: (mode: string) => void;
+  onSetDrawingMode?: (mode: string | null) => void;
 }
 
 const CatalogueIcon = () => (
@@ -45,8 +45,6 @@ const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
   const [showDataPanel, setShowDataPanel] = useState(false);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [showCartPanel, setShowCartPanel] = useState(false);
-  const [drawingMode, setDrawingMode] = useState<string | null>(null);
-  
   const handleCatalogueClick = () => {
     setShowCataloguePanel(!showCataloguePanel);
     setShowDataPanel(false);
@@ -76,12 +74,6 @@ const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
     setShowAIPanel(false);
   };
   
-  // Update the parent component when drawing mode changes
-  const handleDrawingModeChange = (mode: string) => {
-    setDrawingMode(mode);
-    if (onSetDrawingMode) onSetDrawingMode(mode);
-  };
-
   return (
     <>
       <div className="fixed left-5 top-5 h-[calc(100%-40px)] w-[90px] bg-[rgba(51,51,51,0.9)] z-10 flex flex-col items-center pt-5 rounded-xl shadow-lg">
@@ -95,7 +87,7 @@ const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
         <NavItem icon={<CartIcon />} text="Cart" onClick={handleCartClick} active={showCartPanel} />
       </div>
 
-      {showCataloguePanel && <CataloguePanel onClose={() => setShowCataloguePanel(false)} onSetDrawingMode={setDrawingMode} />}
+      {showCataloguePanel && <CataloguePanel onClose={() => setShowCataloguePanel(false)} onSetDrawingMode={onSetDrawingMode} />}
       {showDataPanel && <DataPanel onClose={() => setShowDataPanel(false)} />}
       {showAIPanel && <AIPanel onClose={() => setShowAIPanel(false)} />}
       {showCartPanel && <CartPanel onClose={() => setShowCartPanel(false)} />}
@@ -124,11 +116,7 @@ const NavItem = ({ icon, text, onClick, active = false }: NavItemProps) => {
 
 interface CataloguePanelProps {
   onClose: () => void;
-}
-
-interface CataloguePanelProps {
-  onClose: () => void;
-  onSetDrawingMode?: (mode: string) => void;
+  onSetDrawingMode?: (mode: string | null) => void;
 }
 
 const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {

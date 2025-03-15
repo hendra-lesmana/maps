@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Map as MapGL, Marker, Source, Layer } from '@vis.gl/react-maplibre';
+import type maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapIcon, LocationIcon, PlusIcon, MinusIcon, PointIcon, PolygonIcon, TrashIcon } from './icons';
 
-const buttonStyle = {
+const buttonStyle: React.CSSProperties & { ':hover': React.CSSProperties } = {
   backgroundColor: 'rgba(255,255,255,0.1)',
   border: 'none',
   borderRadius: '4px',
@@ -120,19 +121,22 @@ const SideControlPanel = ({
   setSelectedBasemap,
   showSelector,
   setShowSelector, 
-  setLocationMarker 
+  setLocationMarker,
+  setShowPanel
 }: {
   selectedBasemap: string;
   setSelectedBasemap: (basemap: string) => void;
   showSelector: boolean;
   setShowSelector: (show: boolean) => void;
   setLocationMarker: (coords: [number, number] | null) => void;
+  setShowPanel?: (show: boolean) => void;
 }) => {
-const mapRef = useRef<any>(null);
+const mapRef = useRef<maplibregl.Map | null>(null);
 
   const handleBasemapChange = (basemap: string) => {
     setSelectedBasemap(basemap);
     setShowSelector(false);
+    if (setShowPanel) setShowPanel(false);
   };
 
   const handleLocationClick = () => {
@@ -215,7 +219,7 @@ const mapRef = useRef<any>(null);
   );
 };
 
-const MapControls = ({ mapRef }: { mapRef: React.RefObject<any> }) => {
+const MapControls = ({ mapRef }: { mapRef: React.RefObject<maplibregl.Map> }) => {
   const handleZoomIn = () => {
     mapRef.current?.zoomIn();
   };
@@ -336,12 +340,21 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
   const [selectedBasemap, setSelectedBasemap] = useState('OpenStreetMap');
   const [showSelector, setShowSelector] = useState(false);
   const [locationMarker, setLocationMarker] = useState<[number, number] | null>(null);
-  const [currentDrawingMode, setCurrentDrawingMode] = useState<string | null>(null);
+  const [currentDrawingMode, setCurrentDrawingMode] = useState<string | null>(drawingMode || null);
   const [polygonPoints, setPolygonPoints] = useState<number[][]>([]);
   const [isDrawingPolygon, setIsDrawingPolygon] = useState(false);
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
 
-  const handleMapClick = (e: any) => {
+  // Update currentDrawingMode when drawingMode prop changes
+  useEffect(() => {
+    setCurrentDrawingMode(drawingMode || null);
+    if (!drawingMode) {
+      setPolygonPoints([]);
+      setIsDrawingPolygon(false);
+    }
+  }, [drawingMode]);
+
+  const handleMapClick = (e: maplibregl.MapMouseEvent & { lngLat: maplibregl.LngLat }) => {
     if (currentDrawingMode === 'point') {
       setLocationMarker([e.lngLat.lng, e.lngLat.lat]);
     } else if (currentDrawingMode === 'polygon') {
@@ -381,7 +394,7 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
     }
   };
 
-  const polygonLayerStyle = {
+  const polygonLayerStyle: maplibregl.LayerSpecification = {
     id: 'polygon-layer',
     type: 'fill',
     paint: {
@@ -390,7 +403,7 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
     }
   };
 
-  const polygonOutlineStyle = {
+  const polygonOutlineStyle: maplibregl.LayerSpecification = {
     id: 'polygon-outline',
     type: 'line',
     paint: {
@@ -410,7 +423,7 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
           latitude: -5.0,
           zoom: 4
         }}
-        mapStyle={basemaps[selectedBasemap as keyof typeof basemaps].style as any}
+        mapStyle={basemaps[selectedBasemap as keyof typeof basemaps].style}
       >
         {locationMarker && (
           <Marker longitude={locationMarker[0]} latitude={locationMarker[1]} />
@@ -418,8 +431,8 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
 
         {polygonPoints.length > 0 && (
           <Source type="geojson" data={polygonGeoJSON}>
-            <Layer {...polygonLayerStyle as any} />
-            <Layer {...polygonOutlineStyle as any} />
+            <Layer {...polygonLayerStyle} />
+            <Layer {...polygonOutlineStyle} />
           </Source>
         )}
       </MapGL>
@@ -429,9 +442,10 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
       <SideControlPanel
         selectedBasemap={selectedBasemap}
         setSelectedBasemap={setSelectedBasemap}
-        showSelector={showSelector}
+        showSelector={showSelector && showPanel}
         setShowSelector={setShowSelector}
         setLocationMarker={setLocationMarker}
+        setShowPanel={setShowPanel}
       />
 
       <DrawingControls
