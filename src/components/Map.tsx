@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { Map as MapGL, Marker, Source, Layer } from '@vis.gl/react-maplibre';
+import { Map as MapGL, Marker, Source, Layer, MapRef } from '@vis.gl/react-maplibre';
 import type maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapIcon, LocationIcon, PlusIcon, MinusIcon, PointIcon, PolygonIcon, TrashIcon } from './icons';
@@ -32,10 +32,10 @@ interface MapProps {
 const basemaps = {
   OpenStreetMap: {
     style: {
-      version: 8,
+      version: 8 as const,
       sources: {
         osm: {
-          type: 'raster',
+          type: 'raster' as const,
           tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
           tileSize: 256,
         },
@@ -43,7 +43,7 @@ const basemaps = {
       layers: [
         {
           id: 'osm',
-          type: 'raster',
+          type: 'raster' as const,
           source: 'osm',
           minzoom: 0,
           maxzoom: 19,
@@ -53,10 +53,10 @@ const basemaps = {
   },
   Satellite: {
     style: {
-      version: 8,
+      version: 8 as const,
       sources: {
         satellite: {
-          type: 'raster',
+          type: 'raster' as const,
           tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
           tileSize: 256,
         },
@@ -64,7 +64,7 @@ const basemaps = {
       layers: [
         {
           id: 'satellite',
-          type: 'raster',
+          type: 'raster' as const,
           source: 'satellite',
           minzoom: 0,
           maxzoom: 19,
@@ -74,10 +74,10 @@ const basemaps = {
   },
   Light: {
     style: {
-      version: 8,
+      version: 8 as const,
       sources: {
         light: {
-          type: 'raster',
+          type: 'raster' as const,
           tiles: ['https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png'],
           tileSize: 256,
         },
@@ -85,7 +85,7 @@ const basemaps = {
       layers: [
         {
           id: 'light',
-          type: 'raster',
+          type: 'raster' as const,
           source: 'light',
           minzoom: 0,
           maxzoom: 19,
@@ -95,10 +95,10 @@ const basemaps = {
   },
   Dark: {
     style: {
-      version: 8,
+      version: 8 as const,
       sources: {
         dark: {
-          type: 'raster',
+          type: 'raster' as const,
           tiles: ['https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png'],
           tileSize: 256,
         },
@@ -106,7 +106,7 @@ const basemaps = {
       layers: [
         {
           id: 'dark',
-          type: 'raster',
+          type: 'raster' as const,
           source: 'dark',
           minzoom: 0,
           maxzoom: 19,
@@ -128,10 +128,11 @@ const SideControlPanel = ({
   setSelectedBasemap: (basemap: string) => void;
   showSelector: boolean;
   setShowSelector: (show: boolean) => void;
+  showPanel?: boolean;
   setLocationMarker: (coords: [number, number] | null) => void;
   setShowPanel?: (show: boolean) => void;
 }) => {
-const mapRef = useRef<maplibregl.Map | null>(null);
+const mapRef = useRef<MapRef>(null);
 
   const handleBasemapChange = (basemap: string) => {
     setSelectedBasemap(basemap);
@@ -219,7 +220,7 @@ const mapRef = useRef<maplibregl.Map | null>(null);
   );
 };
 
-const MapControls = ({ mapRef }: { mapRef: React.RefObject<maplibregl.Map> }) => {
+const MapControls = ({ mapRef }: { mapRef: React.RefObject<MapRef> }) => {
   const handleZoomIn = () => {
     mapRef.current?.zoomIn();
   };
@@ -343,7 +344,7 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
   const [currentDrawingMode, setCurrentDrawingMode] = useState<string | null>(drawingMode || null);
   const [polygonPoints, setPolygonPoints] = useState<number[][]>([]);
   const [isDrawingPolygon, setIsDrawingPolygon] = useState(false);
-  const mapRef = useRef<maplibregl.Map | null>(null);
+  const mapRef = useRef<MapRef>(null);
 
   // Update currentDrawingMode when drawingMode prop changes
   useEffect(() => {
@@ -397,6 +398,7 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
   const polygonLayerStyle: maplibregl.LayerSpecification = {
     id: 'polygon-layer',
     type: 'fill',
+    source: 'polygon-source',
     paint: {
       'fill-color': '#0080ff',
       'fill-opacity': 0.5
@@ -406,6 +408,7 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
   const polygonOutlineStyle: maplibregl.LayerSpecification = {
     id: 'polygon-outline',
     type: 'line',
+    source: 'polygon-source',
     paint: {
       'line-color': '#0080ff',
       'line-width': 2
@@ -442,7 +445,7 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
       <SideControlPanel
         selectedBasemap={selectedBasemap}
         setSelectedBasemap={setSelectedBasemap}
-        showSelector={showSelector && showPanel}
+        showSelector={showSelector && (showPanel ?? false)}
         setShowSelector={setShowSelector}
         setLocationMarker={setLocationMarker}
         setShowPanel={setShowPanel}
