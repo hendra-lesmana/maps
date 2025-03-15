@@ -337,7 +337,7 @@ const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygo
   );
 };
 
-const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
+const Map = ({ setShowPanel, drawingMode }: MapProps) => {
   const [selectedBasemap, setSelectedBasemap] = useState('OpenStreetMap');
   const [showSelector, setShowSelector] = useState(false);
   const [locationMarker, setLocationMarker] = useState<[number, number] | null>(null);
@@ -445,7 +445,7 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
       <SideControlPanel
         selectedBasemap={selectedBasemap}
         setSelectedBasemap={setSelectedBasemap}
-        showSelector={showSelector && (showPanel ?? false)}
+        showSelector={showSelector}
         setShowSelector={setShowSelector}
         setLocationMarker={setLocationMarker}
         setShowPanel={setShowPanel}
