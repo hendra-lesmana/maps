@@ -3,6 +3,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { Map as MapGL, Marker, Source, Layer } from '@vis.gl/react-maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { MapIcon, LocationIcon, PlusIcon, MinusIcon, PointIcon, PolygonIcon, TrashIcon } from './icons';
+
+const buttonStyle = {
+  backgroundColor: 'rgba(255,255,255,0.1)',
+  border: 'none',
+  borderRadius: '4px',
+  width: '32px',
+  height: '32px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  color: '#ffffff',
+  transition: 'background-color 0.2s ease',
+  ':hover': {
+    backgroundColor: 'rgba(255,255,255,0.2)'
+  }
+};
 
 interface MapProps {
   showPanel?: boolean;
@@ -150,35 +168,17 @@ const mapRef = useRef<any>(null);
       }}>
         <button
           onClick={() => setShowSelector(!showSelector)}
-          style={{
-            width: '30px',
-            height: '30px',
-            fontSize: '16px',
-            backgroundColor: 'transparent',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'white',
-            cursor: 'pointer',
-            borderRadius: '4px'
-          }}
+          style={buttonStyle}
           title="Change Map Style"
         >
-          🗺️
+          <MapIcon />
         </button>
         <button
           onClick={handleLocationClick}
-          style={{
-            width: '30px',
-            height: '30px',
-            fontSize: '16px',
-            backgroundColor: 'transparent',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'white',
-            cursor: 'pointer',
-            borderRadius: '4px'
-          }}
+          style={buttonStyle}
           title="Find My Location"
         >
-          📍
+          <LocationIcon />
         </button>
       </div>
 
@@ -197,16 +197,13 @@ const mapRef = useRef<any>(null);
               key={basemap}
               onClick={() => handleBasemapChange(basemap)}
               style={{
-                display: 'block',
+                ...buttonStyle,
                 width: '100%',
+                height: 'auto',
                 padding: '8px',
                 marginBottom: '5px',
-                backgroundColor: selectedBasemap === basemap ? 'rgba(255,255,255,0.2)' : 'transparent',
-                border: '1px solid rgba(255,255,255,0.2)',
-                color: 'white',
-                cursor: 'pointer',
-                borderRadius: '4px',
-                textAlign: 'left'
+                backgroundColor: selectedBasemap === basemap ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                justifyContent: 'flex-start'
               }}
             >
               {basemap}
@@ -248,35 +245,17 @@ const MapControls = ({ mapRef }: { mapRef: React.RefObject<any> }) => {
       }}>
         <button
           onClick={handleZoomIn}
-          style={{
-            width: '30px',
-            height: '30px',
-            fontSize: '16px',
-            backgroundColor: 'transparent',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'white',
-            cursor: 'pointer',
-            borderRadius: '4px'
-          }}
+          style={buttonStyle}
           title="Zoom In"
         >
-          +
+          <PlusIcon />
         </button>
         <button
           onClick={handleZoomOut}
-          style={{
-            width: '30px',
-            height: '30px',
-            fontSize: '16px',
-            backgroundColor: 'transparent',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'white',
-            cursor: 'pointer',
-            borderRadius: '4px'
-          }}
+          style={buttonStyle}
           title="Zoom Out"
         >
-          -
+          <MinusIcon />
         </button>
       </div>
     </div>
@@ -312,18 +291,12 @@ const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygo
             }
           }}
           style={{
-            width: '30px',
-            height: '30px',
-            fontSize: '16px',
-            backgroundColor: drawingMode === 'point' ? 'rgba(255,255,255,0.2)' : 'transparent',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'white',
-            cursor: 'pointer',
-            borderRadius: '4px'
+            ...buttonStyle,
+            backgroundColor: drawingMode === 'point' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)'
           }}
           title="Draw Point"
         >
-          📍
+          <PointIcon />
         </button>
         <button
           onClick={() => {
@@ -335,18 +308,12 @@ const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygo
             }
           }}
           style={{
-            width: '30px',
-            height: '30px',
-            fontSize: '16px',
-            backgroundColor: drawingMode === 'polygon' ? 'rgba(255,255,255,0.2)' : 'transparent',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'white',
-            cursor: 'pointer',
-            borderRadius: '4px'
+            ...buttonStyle,
+            backgroundColor: drawingMode === 'polygon' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)'
           }}
           title="Draw Polygon"
         >
-          🔷
+          <PolygonIcon />
         </button>
         {drawingMode === 'polygon' && polygonPoints.length > 0 && (
           <button
@@ -354,19 +321,10 @@ const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygo
               setPolygonPoints([]);
               setDrawingMode(null);
             }}
-            style={{
-              width: '30px',
-              height: '30px',
-              fontSize: '16px',
-              backgroundColor: 'transparent',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'white',
-              cursor: 'pointer',
-              borderRadius: '4px'
-            }}
+            style={buttonStyle}
             title="Clear Polygon"
           >
-            🗑️
+            <TrashIcon />
           </button>
         )}
       </div>
@@ -453,7 +411,7 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
           latitude: -5.0,
           zoom: 4
         }}
-        mapStyle={basemaps[selectedBasemap as keyof typeof basemaps].style}
+        mapStyle={basemaps[selectedBasemap as keyof typeof basemaps].style as any}
       >
         {locationMarker && (
           <Marker longitude={locationMarker[0]} latitude={locationMarker[1]} />
@@ -461,8 +419,8 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
 
         {polygonPoints.length > 0 && (
           <Source type="geojson" data={polygonGeoJSON}>
-            <Layer {...polygonLayerStyle} />
-            <Layer {...polygonOutlineStyle} />
+            <Layer {...polygonLayerStyle as any} />
+            <Layer {...polygonOutlineStyle as any} />
           </Source>
         )}
       </MapGL>

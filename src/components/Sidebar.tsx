@@ -1,11 +1,44 @@
 'use client';
 
 import { useState } from 'react';
+import { MenuIcon } from './icons';
 
 interface SidebarProps {
   onCatalogueClick?: () => void;
   onSetDrawingMode?: (mode: string) => void;
 }
+
+const CatalogueIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+);
+
+const DataIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+    <line x1="12" y1="22.08" x2="12" y2="12" />
+  </svg>
+);
+
+const AIIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+    <path d="M8 12s2-2 4-2 4 2 4 2"/>
+    <path d="M9 9h.01"/>
+    <path d="M15 9h.01"/>
+  </svg>
+);
+
+const CartIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="9" cy="21" r="1" />
+    <circle cx="20" cy="21" r="1" />
+    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+  </svg>
+);
 
 const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
   const [showCataloguePanel, setShowCataloguePanel] = useState(false);
@@ -52,19 +85,14 @@ const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
   return (
     <>
       <div className="fixed left-5 top-5 h-[calc(100%-40px)] w-[90px] bg-[rgba(51,51,51,0.9)] z-10 flex flex-col items-center pt-5 rounded-xl shadow-lg">
-        <div className="w-[60px] h-[60px] bg-[#333] rounded-lg mb-[30px] grid grid-cols-3 grid-rows-3 gap-[2px] p-2">
-          {[...Array(9)].map((_, index) => (
-            <div 
-              key={index}
-              className={`rounded-[2px] ${index === 0 ? 'bg-[#4CAF50]' : 'bg-[#2196F3]'}`}
-            />
-          ))}
+        <div className="w-[60px] h-[60px] bg-[#333] rounded-lg mb-[30px] flex items-center justify-center">
+          <MenuIcon />
         </div>
         
-        <NavItem icon="📚" text="Catalogue" onClick={handleCatalogueClick} active={showCataloguePanel} />
-        <NavItem icon="📊" text="My Data" onClick={handleDataClick} active={showDataPanel} />
-        <NavItem icon="🤖" text="AI Prompt" onClick={handleAIClick} active={showAIPanel} />
-        <NavItem icon="🛒" text="Cart" onClick={handleCartClick} active={showCartPanel} />
+        <NavItem icon={<CatalogueIcon />} text="Catalogue" onClick={handleCatalogueClick} active={showCataloguePanel} />
+        <NavItem icon={<DataIcon />} text="My Data" onClick={handleDataClick} active={showDataPanel} />
+        <NavItem icon={<AIIcon />} text="AI Prompt" onClick={handleAIClick} active={showAIPanel} />
+        <NavItem icon={<CartIcon />} text="Cart" onClick={handleCartClick} active={showCartPanel} />
       </div>
 
       {showCataloguePanel && <CataloguePanel onClose={() => setShowCataloguePanel(false)} onSetDrawingMode={setDrawingMode} />}
@@ -76,7 +104,7 @@ const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
 };
 
 interface NavItemProps {
-  icon: string;
+  icon: React.ReactNode;
   text: string;
   onClick?: () => void;
   active?: boolean;
