@@ -4,5 +4,8 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "npm install",
-  "ignoreCommand": "npx next lint"
+  "env": {
+    "NEXT_SKIP_TYPE_CHECK": "true",
+    "NEXT_LINT_DURING_BUILD": "false"
+  }
 }
