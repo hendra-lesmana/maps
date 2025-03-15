@@ -267,7 +267,13 @@ const MapControls = ({ mapRef }: { mapRef: React.RefObject<MapRef> }) => {
   );
 };
 
-const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygonPoints }: { drawingMode: string | null; setDrawingMode: (mode: string | null) => void; polygonPoints: number[][]; setPolygonPoints: (points: number[][]) => void }) => {
+const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygonPoints, isDrawingPolygon, setIsDrawingPolygon }: { drawingMode: string | null; setDrawingMode: (mode: string | null) => void; polygonPoints: number[][]; setPolygonPoints: (points: number[][]) => void; isDrawingPolygon: boolean; setIsDrawingPolygon: (isDrawing: boolean) => void }) => {
+  const clearPolygon = () => {
+    setPolygonPoints([]);
+    setDrawingMode(null);
+    setIsDrawingPolygon(false);
+  };
+
   return (
     <div style={{
       position: 'absolute',
@@ -293,6 +299,7 @@ const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygo
               setDrawingMode(null);
             } else {
               setDrawingMode('point');
+              setPolygonPoints([]);
             }
           }}
           style={{
@@ -306,10 +313,10 @@ const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygo
         <button
           onClick={() => {
             if (drawingMode === 'polygon') {
-              setDrawingMode(null);
-              setPolygonPoints([]);
+              clearPolygon();
             } else {
               setDrawingMode('polygon');
+              setPolygonPoints([]);
             }
           }}
           style={{
@@ -322,10 +329,7 @@ const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygo
         </button>
         {drawingMode === 'polygon' && polygonPoints.length > 0 && (
           <button
-            onClick={() => {
-              setPolygonPoints([]);
-              setDrawingMode(null);
-            }}
+            onClick={clearPolygon}
             style={buttonStyle}
             title="Clear Polygon"
           >
@@ -363,22 +367,22 @@ const Map = ({ setShowPanel, drawingMode }: MapProps) => {
       if (!isDrawingPolygon) {
         setIsDrawingPolygon(true);
         setPolygonPoints([newPoint]);
-      } else {
-        // Check if clicking near the first point to close the polygon
+      } else if (polygonPoints.length > 0) {
         const firstPoint = polygonPoints[0];
-        const distance = Math.sqrt(
-          Math.pow(newPoint[0] - firstPoint[0], 2) + 
-          Math.pow(newPoint[1] - firstPoint[1], 2)
-        );
+        if (firstPoint) {
+          const distance = Math.sqrt(
+            Math.pow(newPoint[0] - firstPoint[0], 2) + 
+            Math.pow(newPoint[1] - firstPoint[1], 2)
+          );
 
-        if (distance < 0.0001 && polygonPoints.length > 2) {
-          // Close the polygon
-          setPolygonPoints([...polygonPoints, [...firstPoint]]);
-          setIsDrawingPolygon(false);
-          setCurrentDrawingMode(null);
-        } else {
-          // Add new point to polygon
-          setPolygonPoints([...polygonPoints, newPoint]);
+          if (distance < 0.0001 && polygonPoints.length > 2) {
+            // Close the polygon
+            setPolygonPoints([...polygonPoints, [...firstPoint]]);
+            setIsDrawingPolygon(false);
+          } else {
+            // Add new point to polygon
+            setPolygonPoints([...polygonPoints, newPoint]);
+          }
         }
       }
     }
@@ -456,6 +460,8 @@ const Map = ({ setShowPanel, drawingMode }: MapProps) => {
         setDrawingMode={setCurrentDrawingMode}
         polygonPoints={polygonPoints}
         setPolygonPoints={setPolygonPoints}
+        isDrawingPolygon={isDrawingPolygon}
+        setIsDrawingPolygon={setIsDrawingPolygon}
       />
     </div>
   );
