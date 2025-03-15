@@ -267,7 +267,7 @@ const MapControls = ({ mapRef }: { mapRef: React.RefObject<MapRef> }) => {
   );
 };
 
-const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygonPoints, isDrawingPolygon, setIsDrawingPolygon }: { drawingMode: string | null; setDrawingMode: (mode: string | null) => void; polygonPoints: number[][]; setPolygonPoints: (points: number[][]) => void; isDrawingPolygon: boolean; setIsDrawingPolygon: (isDrawing: boolean) => void }) => {
+const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygonPoints, setIsDrawingPolygon }: { drawingMode: string | null; setDrawingMode: (mode: string | null) => void; polygonPoints: number[][]; setPolygonPoints: (points: number[][]) => void; isDrawingPolygon: boolean; setIsDrawingPolygon: (isDrawing: boolean) => void }) => {
   const clearPolygon = () => {
     setPolygonPoints([]);
     setDrawingMode(null);
