@@ -370,13 +370,12 @@ const Map = ({ showPanel, setShowPanel, drawingMode }: MapProps) => {
     }
   };
 
-  const polygonGeoJSON = {
-    type: 'Feature',
+  const polygonGeoJSON: GeoJSON.Feature = {
+    type: 'Feature' as const,
     properties: {},
     geometry: {
-      type: 'Polygon',
-      coordinates: [[
-        ...polygonPoints,
+      type: 'Polygon' as const,
+      coordinates: [[...polygonPoints,
         isDrawingPolygon && polygonPoints.length > 0 ? polygonPoints[0] : polygonPoints[polygonPoints.length - 1] || [0, 0]
       ]]
     }
