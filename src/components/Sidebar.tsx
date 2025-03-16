@@ -127,6 +127,7 @@ const CataloguePanel = ({ onClose, onSetDrawingMode, onLocationSelect }: Catalog
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<SearchResult | null>(null);
   const searchService = useMemo(() => new SearchService(), []);
 
   // Add debounce timer state
@@ -227,6 +228,7 @@ const CataloguePanel = ({ onClose, onSetDrawingMode, onLocationSelect }: Catalog
                         }
                         setSearchResults([]);
                         setSearchQuery(result.displayName);
+                        setSelectedLocation(result);
                       }}
                     >
                       <div className="font-medium">{result.name}</div>
@@ -276,6 +278,25 @@ const CataloguePanel = ({ onClose, onSetDrawingMode, onLocationSelect }: Catalog
           )}
         </div>
       </div>
+      {selectedLocation && (
+              <div className="mt-4 mb-4 mx-4 p-3 bg-white/5 rounded-lg">
+                <h3 className="text-sm font-medium mb-2">{selectedLocation.name}</h3>
+                {selectedLocation.address && (
+                  <div className="text-xs text-gray-300 space-y-1">
+                    {selectedLocation.address.road && <p>{selectedLocation.address.road}</p>}
+                    <p>
+                      {[selectedLocation.address.city, selectedLocation.address.state, selectedLocation.address.country]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </p>
+                    {selectedLocation.address.postcode && <p>Postal Code: {selectedLocation.address.postcode}</p>}
+                  </div>
+                )}
+                <div className="text-xs text-gray-300 mt-2">
+                  <p>Coordinates: {selectedLocation.location.lat.toFixed(6)}, {selectedLocation.location.lon.toFixed(6)}</p>
+                </div>
+              </div>
+            )}
     </div>
   );
 };
