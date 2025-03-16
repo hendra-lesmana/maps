@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MenuIcon } from './icons';
+import { MenuIcon, PointIcon, PolygonIcon } from './icons';
 
 interface SidebarProps {
   onCatalogueClick?: () => void;
@@ -125,13 +125,13 @@ const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
   const handlePointClick = () => {
     const mode = activeButton === 'point' ? null : 'point';
     setActiveButton(mode);
-    if (onSetDrawingMode && mode !== null) onSetDrawingMode(mode);
+    if (onSetDrawingMode) onSetDrawingMode(mode);
   };
 
   const handlePolygonClick = () => {
     const mode = activeButton === 'polygon' ? null : 'polygon';
     setActiveButton(mode);
-    if (onSetDrawingMode && mode !== null) onSetDrawingMode(mode);
+    if (onSetDrawingMode) onSetDrawingMode(mode);
   };
 
   return (
@@ -168,14 +168,18 @@ const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
               onClick={handlePointClick}
               className={`flex-1 py-3 ${activeButton === 'point' ? 'bg-[#2a75e6]' : 'bg-[#4285F4] hover:bg-[#2a75e6]'} text-white rounded-md flex items-center justify-center transition-colors`}
             >
-              <span className="mr-2">⊙</span>
+              <span className="mr-2">
+              <PointIcon />
+              </span>
               <span>Point</span>
             </button>
             <button 
               onClick={handlePolygonClick}
               className={`flex-1 py-3 ${activeButton === 'polygon' ? 'bg-[#2a75e6]' : 'bg-[#4285F4] hover:bg-[#2a75e6]'} text-white rounded-md flex items-center justify-center transition-colors`}
             >
-              <span className="mr-2">⬡</span>
+              <span className="mr-2">
+              <PolygonIcon />
+              </span>
               <span>Polygon</span>
             </button>
           </div>
@@ -183,7 +187,7 @@ const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
             <button
               onClick={() => {
                 setActiveButton(null);
-                if (onSetDrawingMode) onSetDrawingMode('');
+                if (onSetDrawingMode) onSetDrawingMode(null);
               }}
               className="w-full p-2 rounded bg-red-500 text-white mt-4"
             >
