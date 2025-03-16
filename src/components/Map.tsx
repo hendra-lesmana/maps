@@ -6,6 +6,7 @@ import type maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapIcon, LocationIcon, PlusIcon, MinusIcon, PointIcon, PolygonIcon, TrashIcon } from './icons';
 import { SearchResult } from '../lib/search/providers';
+import { OpenStreetMapGeoJSONProvider } from '../lib/geojson/providers';
 
 const buttonStyle: React.CSSProperties & { ':hover': React.CSSProperties } = {
   backgroundColor: 'rgba(255,255,255,0.1)',
@@ -350,7 +351,9 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
   const [currentDrawingMode, setCurrentDrawingMode] = useState<string | null>(drawingMode || null);
   const [polygonPoints, setPolygonPoints] = useState<number[][]>([]);
   const [isDrawingPolygon, setIsDrawingPolygon] = useState(false);
+  const [locationGeoJSON, setLocationGeoJSON] = useState<GeoJSON.Feature | null>(null);
   const mapRef = useRef<MapRef>(null);
+  const geoJSONProvider = new OpenStreetMapGeoJSONProvider();
 
   // Update currentDrawingMode when drawingMode prop changes
   useEffect(() => {
@@ -362,21 +365,32 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
   }, [drawingMode]);
 
   useEffect(() => {
-    if (selectedLocation?.boundingBox) {
-      const { minLon, maxLon, minLat, maxLat } = selectedLocation.boundingBox;
-      const bounds: maplibregl.LngLatBoundsLike = [
-        [minLon, minLat],
-        [maxLon, maxLat]
-      ];
-      mapRef.current?.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 16
-      });
-    } else if (selectedLocation?.location) {
-      mapRef.current?.flyTo({
-        center: [selectedLocation.location.lon, selectedLocation.location.lat],
-        zoom: 16,
-      });
+    if (selectedLocation) {
+      if (selectedLocation.boundingBox) {
+        const { minLon, maxLon, minLat, maxLat } = selectedLocation.boundingBox;
+        const bounds: maplibregl.LngLatBoundsLike = [
+          [minLon, minLat],
+          [maxLon, maxLat]
+        ];
+        mapRef.current?.fitBounds(bounds, {
+          padding: 50,
+          maxZoom: 16
+        });
+      } else if (selectedLocation.location) {
+        mapRef.current?.flyTo({
+          center: [selectedLocation.location.lon, selectedLocation.location.lat],
+          zoom: 16,
+        });
+      }
+
+      // Fetch GeoJSON data for the selected location
+      const fetchGeoJSON = async () => {
+        const geoJSON = await geoJSONProvider.getGeoJSON(selectedLocation.id);
+        setLocationGeoJSON(geoJSON);
+      };
+      fetchGeoJSON();
+    } else {
+      setLocationGeoJSON(null);
     }
   }, [selectedLocation]);
 
@@ -457,7 +471,26 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
           <Marker longitude={locationMarker[0]} latitude={locationMarker[1]} />
         )}
 
-      {/* Location boundary visualization removed */}
+        {locationGeoJSON && (
+          <Source type="geojson" data={locationGeoJSON}>
+            <Layer
+              id="location-boundary-fill"
+              type="fill"
+              paint={{
+                'fill-color': '#0080ff',
+                'fill-opacity': 0.2
+              }}
+            />
+            <Layer
+              id="location-boundary-line"
+              type="line"
+              paint={{
+                'line-color': '#0080ff',
+                'line-width': 2
+              }}
+            />
+          </Source>
+        )}
 
         {polygonPoints.length > 0 && (
           <Source type="geojson" data={polygonGeoJSON}>
