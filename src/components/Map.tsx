@@ -5,6 +5,7 @@ import { Map as MapGL, Marker, Source, Layer, MapRef } from '@vis.gl/react-mapli
 import type maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapIcon, LocationIcon, PlusIcon, MinusIcon, PointIcon, PolygonIcon, TrashIcon } from './icons';
+import { SearchResult } from '../lib/search/providers';
 
 const buttonStyle: React.CSSProperties & { ':hover': React.CSSProperties } = {
   backgroundColor: 'rgba(255,255,255,0.1)',
@@ -27,6 +28,7 @@ interface MapProps {
   showPanel?: boolean;
   setShowPanel?: (show: boolean) => void;
   drawingMode?: string | null;
+  selectedLocation?: SearchResult | null;
 }
 
 const basemaps = {
@@ -341,7 +343,7 @@ const DrawingControls = ({ drawingMode, setDrawingMode, polygonPoints, setPolygo
   );
 };
 
-const Map = ({ setShowPanel, drawingMode }: MapProps) => {
+const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
   const [selectedBasemap, setSelectedBasemap] = useState('OpenStreetMap');
   const [showSelector, setShowSelector] = useState(false);
   const [locationMarker, setLocationMarker] = useState<[number, number] | null>(null);
@@ -358,6 +360,25 @@ const Map = ({ setShowPanel, drawingMode }: MapProps) => {
       setIsDrawingPolygon(false);
     }
   }, [drawingMode]);
+
+  useEffect(() => {
+    if (selectedLocation?.boundingBox) {
+      const { minLon, maxLon, minLat, maxLat } = selectedLocation.boundingBox;
+      const bounds: maplibregl.LngLatBoundsLike = [
+        [minLon, minLat],
+        [maxLon, maxLat]
+      ];
+      mapRef.current?.fitBounds(bounds, {
+        padding: 50,
+        maxZoom: 16
+      });
+    } else if (selectedLocation?.location) {
+      mapRef.current?.flyTo({
+        center: [selectedLocation.location.lon, selectedLocation.location.lat],
+        zoom: 16,
+      });
+    }
+  }, [selectedLocation]);
 
   const handleMapClick = (e: maplibregl.MapMouseEvent & { lngLat: maplibregl.LngLat }) => {
     if (currentDrawingMode === 'point') {
@@ -435,6 +456,8 @@ const Map = ({ setShowPanel, drawingMode }: MapProps) => {
         {locationMarker && (
           <Marker longitude={locationMarker[0]} latitude={locationMarker[1]} />
         )}
+
+      {/* Location boundary visualization removed */}
 
         {polygonPoints.length > 0 && (
           <Source type="geojson" data={polygonGeoJSON}>

@@ -7,6 +7,7 @@ import { SearchService, SearchResult } from '../lib/search';
 interface SidebarProps {
   onCatalogueClick?: () => void;
   onSetDrawingMode?: (mode: string | null) => void;
+  onLocationSelect?: (location: SearchResult) => void;
 }
 
 const CatalogueIcon = () => (
@@ -41,7 +42,7 @@ const CartIcon = () => (
   </svg>
 );
 
-const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
+const Sidebar = ({ onCatalogueClick, onSetDrawingMode, onLocationSelect }: SidebarProps = {}) => {
   const [showCataloguePanel, setShowCataloguePanel] = useState(false);
   const [showDataPanel, setShowDataPanel] = useState(false);
   const [showAIPanel, setShowAIPanel] = useState(false);
@@ -88,7 +89,7 @@ const Sidebar = ({ onCatalogueClick, onSetDrawingMode }: SidebarProps = {}) => {
         <NavItem icon={<CartIcon />} text="Cart" onClick={handleCartClick} active={showCartPanel} />
       </div>
 
-      {showCataloguePanel && <CataloguePanel onClose={() => setShowCataloguePanel(false)} onSetDrawingMode={onSetDrawingMode} />}
+      {showCataloguePanel && <CataloguePanel onClose={() => setShowCataloguePanel(false)} onSetDrawingMode={onSetDrawingMode} onLocationSelect={onLocationSelect} />}
       {showDataPanel && <DataPanel onClose={() => setShowDataPanel(false)} />}
       {showAIPanel && <AIPanel onClose={() => setShowAIPanel(false)} />}
       {showCartPanel && <CartPanel onClose={() => setShowCartPanel(false)} />}
@@ -118,9 +119,10 @@ const NavItem = ({ icon, text, onClick, active = false }: NavItemProps) => {
 interface CataloguePanelProps {
   onClose: () => void;
   onSetDrawingMode?: (mode: string | null) => void;
+  onLocationSelect?: (location: SearchResult) => void;
 }
 
-const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
+const CataloguePanel = ({ onClose, onSetDrawingMode, onLocationSelect }: CataloguePanelProps) => {
   const [activeButton, setActiveButton] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -220,8 +222,9 @@ const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
                       key={result.id}
                       className="p-2 hover:bg-white/10 cursor-pointer text-white text-sm"
                       onClick={() => {
-                        // Handle location selection here
-                        console.log('Selected location:', result);
+                        if (onLocationSelect) {
+                          onLocationSelect(result);
+                        }
                         setSearchResults([]);
                         setSearchQuery(result.displayName);
                       }}
