@@ -439,8 +439,9 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
     type: 'fill',
     source: 'polygon-source',
     paint: {
-      'fill-color': '#0080ff',
-      'fill-opacity': 0.5
+      'fill-color': '#4a90e2',
+      'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.7, 0.4],
+      'fill-outline-color': '#2171c7'
     }
   };
 
@@ -449,8 +450,9 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
     type: 'line',
     source: 'polygon-source',
     paint: {
-      'line-color': '#0080ff',
-      'line-width': 2
+      'line-color': '#2171c7',
+      'line-width': 2.5,
+      'line-blur': 0.5
     }
   };
 
@@ -477,16 +479,18 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
               id="location-boundary-fill"
               type="fill"
               paint={{
-                'fill-color': '#0080ff',
-                'fill-opacity': 0.2
+                'fill-color': '#c7cddd',
+                'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.7, 0.4],
+                'fill-outline-color': '#3333ee'
               }}
             />
             <Layer
               id="location-boundary-line"
               type="line"
               paint={{
-                'line-color': '#0080ff',
-                'line-width': 2
+                'line-color': '#3333ee',
+                'line-width': 0.5,
+                'line-blur': 0.5
               }}
             />
           </Source>
