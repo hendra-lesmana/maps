@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { MenuIcon, PointIcon, PolygonIcon } from './icons';
+import { SearchService, SearchResult } from '../lib/search';
 
 interface SidebarProps {
   onCatalogueClick?: () => void;
@@ -121,6 +122,13 @@ interface CataloguePanelProps {
 
 const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
   const [activeButton, setActiveButton] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchService = useMemo(() => new SearchService(), []);
+
+  // Add debounce timer state
+  const [searchTimer, setSearchTimer] = useState<NodeJS.Timeout | null>(null);
 
   const handlePointClick = () => {
     const mode = activeButton === 'point' ? null : 'point';
@@ -154,12 +162,65 @@ const CataloguePanel = ({ onClose, onSetDrawingMode }: CataloguePanelProps) => {
             <div className="relative">
               <input 
                 type="text" 
-                placeholder="Search" 
+                value={searchQuery}
+                onChange={async (e) => {
+                  const query = e.target.value;
+                  setSearchQuery(query);
+                  
+                  // Clear any existing timer
+                  if (searchTimer) {
+                    clearTimeout(searchTimer);
+                  }
+                  
+                  if (query.trim()) {
+                    // Set a new timer for 500ms
+                    const timer = setTimeout(async () => {
+                      setIsSearching(true);
+                      try {
+                        const results = await searchService.search(query);
+                        setSearchResults(results);
+                      } catch (error) {
+                        console.error('Search failed:', error);
+                      } finally {
+                        setIsSearching(false);
+                      }
+                    }, 500);
+                    
+                    setSearchTimer(timer);
+                  } else {
+                    setSearchResults([]);
+                  }
+                }}
+                placeholder="Search location..." 
                 className="w-full p-2 pl-8 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:border-blue-500"
               />
               <svg className="absolute left-2 top-2.5 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
+              {searchResults.length > 0 && (
+                <div className="absolute w-full mt-1 bg-[#333] border border-white/20 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
+                  {searchResults.map((result) => (
+                    <div
+                      key={result.id}
+                      className="p-2 hover:bg-white/10 cursor-pointer text-white text-sm"
+                      onClick={() => {
+                        // Handle location selection here
+                        console.log('Selected location:', result);
+                        setSearchResults([]);
+                        setSearchQuery(result.displayName);
+                      }}
+                    >
+                      <div className="font-medium">{result.name}</div>
+                      <div className="text-xs text-gray-300">{result.displayName}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {isSearching && (
+                <div className="absolute w-full mt-1 p-2 bg-[#333] border border-white/20 rounded-md text-white text-sm">
+                  Searching...
+                </div>
+              )}
             </div>
           </div>
           
