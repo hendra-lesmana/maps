@@ -428,29 +428,28 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
       setLocationMarker([e.lngLat.lng, e.lngLat.lat]);
     } else if (currentDrawingMode === 'polygon') {
       const newPoint = [e.lngLat.lng, e.lngLat.lat];
+      
       if (!isDrawingPolygon) {
+        // Start drawing polygon
         setIsDrawingPolygon(true);
         setPolygonPoints([newPoint]);
-      } else if (polygonPoints.length > 0) {
+      } else {
+        // Check if clicking near the first point to close the polygon
         const firstPoint = polygonPoints[0];
-        if (firstPoint) {
+        if (firstPoint && polygonPoints.length > 2) {
           const distance = Math.sqrt(
             Math.pow(newPoint[0] - firstPoint[0], 2) + 
             Math.pow(newPoint[1] - firstPoint[1], 2)
           );
 
-          if (distance < 0.0001 && polygonPoints.length > 2) {
+          if (distance < 0.0001) {
             // Close the polygon
-            const closedPolygon = [...polygonPoints, [...firstPoint]];
-            setPolygonPoints(closedPolygon);
+            setPolygonPoints([...polygonPoints]);
             setIsDrawingPolygon(false);
             
             // Add to layers
             setLayers(prevLayers => {
-              // Remove any existing polygon layer
               const filteredLayers = prevLayers.filter(layer => layer.id !== 'user-polygon');
-              
-              // Add the new layer
               return [...filteredLayers, {
                 id: 'user-polygon',
                 name: 'User Polygon',
@@ -459,11 +458,12 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
                 type: 'polygon'
               }];
             });
-          } else {
-            // Add new point to polygon
-            setPolygonPoints([...polygonPoints, newPoint]);
+            return;
           }
         }
+        
+        // Add new point to polygon
+        setPolygonPoints([...polygonPoints, newPoint]);
       }
     }
   };
@@ -473,9 +473,13 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
     properties: {},
     geometry: {
       type: 'Polygon' as const,
-      coordinates: [[...polygonPoints,
-        isDrawingPolygon && polygonPoints.length > 0 ? polygonPoints[0] : polygonPoints[polygonPoints.length - 1] || [0, 0]
-      ]]
+      coordinates: [
+        polygonPoints.length > 0
+          ? isDrawingPolygon && polygonPoints.length < 3
+            ? [...polygonPoints, ...Array(3 - polygonPoints.length).fill(polygonPoints[0])] // Ensure at least 3 points for a valid polygon
+            : [...polygonPoints, polygonPoints[0]]
+          : [[0, 0], [0, 0], [0, 0]]
+      ]
     }
   };
 
@@ -561,7 +565,7 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
           </Source>
         )}
 
-        {polygonPoints.length > 0 && layers.some(layer => layer.id === 'user-polygon' && layer.visible) && (
+        {polygonPoints.length > 0 && (isDrawingPolygon || layers.some(layer => layer.id === 'user-polygon' && layer.visible)) && (
           <Source type="geojson" data={polygonGeoJSON}>
             <Layer 
               {...polygonLayerStyle} 
