@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { Map as MapGL, Marker, Source, Layer, MapRef } from '@vis.gl/react-maplibre';
+import LayerControls from './LayerControls';
 import type maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapIcon, LocationIcon, PlusIcon, MinusIcon, PointIcon, PolygonIcon, TrashIcon } from './icons';
@@ -352,6 +353,13 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
   const [polygonPoints, setPolygonPoints] = useState<number[][]>([]);
   const [isDrawingPolygon, setIsDrawingPolygon] = useState(false);
   const [locationGeoJSON, setLocationGeoJSON] = useState<GeoJSON.Feature | null>(null);
+  const [layers, setLayers] = useState<Array<{
+    id: string;
+    name: string;
+    visible: boolean;
+    opacity: number;
+    type: string;
+  }>>([]);
   const mapRef = useRef<MapRef>(null);
   const geoJSONProvider = new OpenStreetMapGeoJSONProvider();
 
@@ -361,6 +369,9 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
     if (!drawingMode) {
       setPolygonPoints([]);
       setIsDrawingPolygon(false);
+      
+      // Remove polygon layer if exists
+      setLayers(prevLayers => prevLayers.filter(layer => layer.id !== 'user-polygon'));
     }
   }, [drawingMode]);
 
@@ -387,10 +398,28 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
       const fetchGeoJSON = async () => {
         const geoJSON = await geoJSONProvider.getGeoJSON(selectedLocation.id);
         setLocationGeoJSON(geoJSON);
+        
+        // Add to layers
+        const layerId = `location-${selectedLocation.id}`;
+        setLayers(prevLayers => {
+          // Remove any existing layer with the same ID
+          const filteredLayers = prevLayers.filter(layer => layer.id !== layerId);
+          
+          // Add the new layer
+          return [...filteredLayers, {
+            id: layerId,
+            name: selectedLocation.name || 'Location Boundary',
+            visible: true,
+            opacity: 0.7,
+            type: 'geojson'
+          }];
+        });
       };
       fetchGeoJSON();
     } else {
       setLocationGeoJSON(null);
+      // Remove location layer if exists
+      setLayers(prevLayers => prevLayers.filter(layer => !layer.id.startsWith('location-')));
     }
   }, [selectedLocation]);
 
@@ -412,8 +441,24 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
 
           if (distance < 0.0001 && polygonPoints.length > 2) {
             // Close the polygon
-            setPolygonPoints([...polygonPoints, [...firstPoint]]);
+            const closedPolygon = [...polygonPoints, [...firstPoint]];
+            setPolygonPoints(closedPolygon);
             setIsDrawingPolygon(false);
+            
+            // Add to layers
+            setLayers(prevLayers => {
+              // Remove any existing polygon layer
+              const filteredLayers = prevLayers.filter(layer => layer.id !== 'user-polygon');
+              
+              // Add the new layer
+              return [...filteredLayers, {
+                id: 'user-polygon',
+                name: 'User Polygon',
+                visible: true,
+                opacity: 0.7,
+                type: 'polygon'
+              }];
+            });
           } else {
             // Add new point to polygon
             setPolygonPoints([...polygonPoints, newPoint]);
@@ -455,6 +500,18 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
       'line-blur': 0.5
     }
   };
+  
+  const handleLayerChange = (layerId: string, changes: Partial<{ visible: boolean; opacity: number }>) => {
+    // Update the layers state
+    setLayers(prevLayers => {
+      return prevLayers.map(layer => {
+        if (layer.id === layerId) {
+          return { ...layer, ...changes };
+        }
+        return layer;
+      });
+    });
+  };
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
@@ -473,14 +530,19 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
           <Marker longitude={locationMarker[0]} latitude={locationMarker[1]} />
         )}
 
-        {locationGeoJSON && (
+        {locationGeoJSON && layers.some(layer => layer.id.startsWith('location-') && layer.visible) && (
           <Source type="geojson" data={locationGeoJSON}>
             <Layer
               id="location-boundary-fill"
               type="fill"
               paint={{
                 'fill-color': '#c7cddd',
-                'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.7, 0.4],
+                'fill-opacity': [
+                  'case', 
+                  ['boolean', ['feature-state', 'hover'], false], 
+                  layers.find(l => l.id.startsWith('location-'))?.opacity || 0.7, 
+                  (layers.find(l => l.id.startsWith('location-'))?.opacity || 0.7) * 0.6
+                ],
                 'fill-outline-color': '#3333ee'
               }}
             />
@@ -496,9 +558,20 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
           </Source>
         )}
 
-        {polygonPoints.length > 0 && (
+        {polygonPoints.length > 0 && layers.some(layer => layer.id === 'user-polygon' && layer.visible) && (
           <Source type="geojson" data={polygonGeoJSON}>
-            <Layer {...polygonLayerStyle} />
+            <Layer 
+              {...polygonLayerStyle} 
+              paint={{
+                ...polygonLayerStyle.paint,
+                'fill-opacity': [
+                  'case', 
+                  ['boolean', ['feature-state', 'hover'], false], 
+                  layers.find(l => l.id === 'user-polygon')?.opacity || 0.7, 
+                  (layers.find(l => l.id === 'user-polygon')?.opacity || 0.7) * 0.6
+                ]
+              }}
+            />
             <Layer {...polygonOutlineStyle} />
           </Source>
         )}
@@ -523,6 +596,7 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
         isDrawingPolygon={isDrawingPolygon}
         setIsDrawingPolygon={setIsDrawingPolygon}
       />
+      <LayerControls layers={layers} onLayerChange={handleLayerChange} />
     </div>
   );
 };
