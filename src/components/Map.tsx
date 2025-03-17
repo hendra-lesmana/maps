@@ -126,7 +126,8 @@ const SideControlPanel = ({
   showSelector,
   setShowSelector, 
   setLocationMarker,
-  setShowPanel
+  setShowPanel,
+  mapRef
 }: {
   selectedBasemap: string;
   setSelectedBasemap: (basemap: string) => void;
@@ -135,9 +136,8 @@ const SideControlPanel = ({
   showPanel?: boolean;
   setLocationMarker: (coords: [number, number] | null) => void;
   setShowPanel?: (show: boolean) => void;
+  mapRef: React.RefObject<MapRef>;
 }) => {
-const mapRef = useRef<MapRef>(null);
-
   const handleBasemapChange = (basemap: string) => {
     setSelectedBasemap(basemap);
     setShowSelector(false);
@@ -589,6 +589,7 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
         setShowSelector={setShowSelector}
         setLocationMarker={setLocationMarker}
         setShowPanel={setShowPanel}
+        mapRef={mapRef}
       />
 
       <DrawingControls
