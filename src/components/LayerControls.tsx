@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { EyeIcon, EyeSlashIcon, LayersIcon } from './icons';
+import { EyeIcon, EyeSlashIcon, LayersIcon, TrashIcon } from './icons';
 
 interface Layer {
   id: string;
@@ -13,7 +13,7 @@ interface Layer {
 
 interface LayerControlsProps {
   layers?: Layer[];
-  onLayerChange?: (layerId: string, changes: Partial<Layer>) => void;
+  onLayerChange?: (layerId: string, changes: Partial<Layer> | 'remove') => void;
 }
 
 const buttonStyle: React.CSSProperties = {
@@ -74,12 +74,13 @@ const LayerControls = ({ layers = [], onLayerChange }: LayerControlsProps) => {
           backgroundColor: 'rgba(51, 51, 51, 0.9)',
           padding: '15px',
           borderRadius: '8px',
-          right: '50px',
+          right: '60px',
           top: '0',
           minWidth: '250px',
           maxWidth: '300px',
           width: 'auto',
           boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+          margin: '2px'
         }}>
           <div style={{
             marginBottom: '15px',
@@ -111,13 +112,22 @@ const LayerControls = ({ layers = [], onLayerChange }: LayerControlsProps) => {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', width: '100%' }}>
                   <span style={{ color: '#ffffff', fontSize: '14px', flex: 1, marginRight: '10px' }}>{layer.name}</span>
-                  <button
-                    onClick={() => onLayerChange && onLayerChange(layer.id, { visible: !layer.visible })}
-                    style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', display: 'flex' }}
-                    title={layer.visible ? 'Hide Layer' : 'Show Layer'}
-                  >
-                    {layer.visible ? <EyeIcon /> : <EyeSlashIcon />}
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => onLayerChange && onLayerChange(layer.id, { visible: !layer.visible })}
+                      style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', display: 'flex' }}
+                      title={layer.visible ? 'Hide Layer' : 'Show Layer'}
+                    >
+                      {layer.visible ? <EyeIcon /> : <EyeSlashIcon />}
+                    </button>
+                    <button
+                      onClick={() => onLayerChange && onLayerChange(layer.id, 'remove')}
+                      style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', display: 'flex' }}
+                      title="Remove Layer"
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
                 </div>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

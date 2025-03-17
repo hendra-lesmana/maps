@@ -501,9 +501,12 @@ const Map = ({ setShowPanel, drawingMode, selectedLocation }: MapProps) => {
     }
   };
   
-  const handleLayerChange = (layerId: string, changes: Partial<{ visible: boolean; opacity: number }>) => {
+  const handleLayerChange = (layerId: string, changes: Partial<{ visible: boolean; opacity: number }> | 'remove') => {
     // Update the layers state
     setLayers(prevLayers => {
+      if (changes === 'remove') {
+        return prevLayers.filter(layer => layer.id !== layerId);
+      }
       return prevLayers.map(layer => {
         if (layer.id === layerId) {
           return { ...layer, ...changes };
